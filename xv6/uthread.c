@@ -63,25 +63,6 @@ tid_t thread_create(void (*fn)(void*), void *arg) {
     return t->tid;
 }
 
-static void __attribute__((naked)) swtch(struct context **old, struct context *new) {
-    __asm__ volatile(
-        "movl 4(%%esp), %%eax\n\t"
-        "movl 8(%%esp), %%edx\n\t"
-        "pushl %%ebp\n\t"
-        "pushl %%ebx\n\t"
-        "pushl %%esi\n\t"
-        "pushl %%edi\n\t"
-        "movl %%esp, (%%eax)\n\t"
-        "movl %%edx, %%esp\n\t"
-        "popl %%edi\n\t"
-        "popl %%esi\n\t"
-        "popl %%ebx\n\t"
-        "popl %%ebp\n\t"
-        "ret\n\t"
-        :::
-    );
-}
-
 void thread_yield(void) {
     int cur_idx = current - threads;
     int next_idx = -1;
@@ -97,7 +78,7 @@ void thread_yield(void) {
     if (prev->state == T_RUNNING)
         prev->state = T_RUNNABLE;
     current->state = T_RUNNING;
-    swtch(&prev->ctx, current->ctx);
+    uswtch(&prev->ctx, current->ctx);
 }
 
 int thread_join(tid_t tid) {

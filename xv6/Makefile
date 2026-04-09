@@ -61,6 +61,8 @@ QEMU = $(shell if which qemu > /dev/null; \
 	then echo qemu-system-i386; exit; \
 	elif which qemu-system-x86_64 > /dev/null; \
 	then echo qemu-system-x86_64; exit; \
+	elif which /usr/libexec/qemu-kvm > /dev/null; \
+  then echo /usr/libexec/qemu-kvm; exit; \
 	else \
 	qemu=/Applications/Q.app/Contents/MacOS/i386-softmmu.app/Contents/MacOS/i386-softmmu; \
 	if test -x $$qemu; then echo $$qemu; exit; fi; fi; \
@@ -181,6 +183,10 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	_test_pc\
+
+_test_pc: test_pc.o uthread.o umutex.o uswtch.o $(ULIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
